@@ -1,15 +1,17 @@
 package com.knightstour.business;
+import com.knightstour.chess.Board;
 import com.knightstour.chess.Moves;
 import com.knightstour.chess.Position;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class BusinessBoard {
     private int sizeX;
     private int sizeY;
     private Position knightPosition;
     private int boardSize;
-    private int[][] board;
+    private Board board;
     private Position[] tour;
     private int backtrackCount;
 
@@ -20,25 +22,21 @@ public class BusinessBoard {
         boardSize = sizeX * sizeY;
         knightPosition = initialPosition;
         backtrackCount = 0;
-        board = new int[sizeX][sizeY];
+        board = new Board(sizeX, sizeY);
         tour = new Position[boardSize];
-
-        for (int[] row : board) {
-            Arrays.fill(row, -1);
-        }
     }
 
-    public void findSolution() {
+    public List<Position> findSolution() {
         int currentMoveOrder = 0;
 
         while (!boardIsSolved(currentMoveOrder)) {
             int validMove = -1;
             Position nextPosition = new Position(-1, -1);
-            for (int moveIndex = (board[knightPosition.getX()][knightPosition.getY()] + 1); moveIndex < Moves.getMoveCount(); moveIndex++) {
-                Position move = Moves.getMove(moveIndex);
-                Position newPosition = this.move(knightPosition, move);
+            for (int moveIndex = (board.getPositionIndex(knightPosition) + 1); moveIndex < Moves.getMoveCount(); moveIndex++) {
+                var move = Moves.getMove(moveIndex);
+                var newPosition = this.move(knightPosition, move);
 
-                if (isValidMove(newPosition)) {
+                if (board.isValidMove(newPosition)) {
                     validMove = moveIndex;
                     nextPosition = newPosition;
                     break;
@@ -47,14 +45,15 @@ public class BusinessBoard {
 
             if (validMove == -1) {
                 backtrackCount++;
-                board[knightPosition.getX()][knightPosition.getY()] = -1;
+                board.resetPosition(knightPosition);
                 currentMoveOrder--;
                 if (currentMoveOrder < 0) {
                     System.out.println("Board cannot be solved");
+                    return null;
                 }
                 knightPosition = tour[currentMoveOrder];
             } else {
-                board[knightPosition.getX()][knightPosition.getY()] = validMove;
+                board.setPositionIndex(knightPosition, validMove);
                 tour[currentMoveOrder] = knightPosition;
                 currentMoveOrder++;
                 knightPosition = nextPosition;
@@ -64,15 +63,7 @@ public class BusinessBoard {
         tour[currentMoveOrder] = knightPosition;
         System.out.println("Solved!");
         System.out.println(String.format("Backtrack count: %d\n", backtrackCount));
-    }
-
-    private boolean isValidMove(Position p) {
-        return
-                p.getX() >= 0 &&
-                        p.getX() < sizeX &&
-                        p.getY() >= 0 &&
-                        p.getY() < sizeY &&
-                        board[p.getX()][p.getY()] == -1;
+        return Arrays.asList(tour);
     }
 
     private Position move(Position initial, Position move) {
