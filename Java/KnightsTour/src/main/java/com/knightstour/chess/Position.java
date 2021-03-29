@@ -1,6 +1,5 @@
 package com.knightstour.chess;
 
-
 public class Position {
     private final int x;
 

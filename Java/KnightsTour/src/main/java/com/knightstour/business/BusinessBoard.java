@@ -23,7 +23,7 @@ public class BusinessBoard {
         board = new int[sizeX][sizeY];
         tour = new Position[boardSize];
 
-        for (var row : board) {
+        for (int[] row : board) {
             Arrays.fill(row, -1);
         }
     }
@@ -68,11 +68,11 @@ public class BusinessBoard {
 
     private boolean isValidMove(Position p) {
         return
-            p.getX() >= 0 &&
-            p.getX() < sizeX &&
-            p.getY() >= 0 &&
-            p.getY() < sizeY &&
-            board[p.getX()][p.getY()] == -1;
+                p.getX() >= 0 &&
+                        p.getX() < sizeX &&
+                        p.getY() >= 0 &&
+                        p.getY() < sizeY &&
+                        board[p.getX()][p.getY()] == -1;
     }
 
     private Position move(Position initial, Position move) {

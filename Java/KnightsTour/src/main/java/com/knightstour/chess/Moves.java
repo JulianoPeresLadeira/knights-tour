@@ -3,7 +3,6 @@ package com.knightstour.chess;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class Moves {
 
     private static List<Position> moves;
