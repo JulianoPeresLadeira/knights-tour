@@ -3,9 +3,7 @@ package com.knightstour.business;
 import com.knightstour.chess.Position;
 import org.junit.Test;
 
-import java.util.List;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
 
 public class BusinessBoardTests {
 
