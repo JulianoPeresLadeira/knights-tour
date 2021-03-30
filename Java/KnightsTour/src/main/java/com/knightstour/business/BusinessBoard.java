@@ -3,6 +3,7 @@ package com.knightstour.business;
 import com.knightstour.chess.Board;
 import com.knightstour.chess.Moves;
 import com.knightstour.chess.Position;
+import com.knightstour.util.BusinessHelper;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,6 +31,10 @@ public class BusinessBoard {
     private Position initialPosition;
 
     public BusinessBoard(int sizeX, int sizeY, Position initialPosition) {
+        if (sizeX <= 0 || sizeY <= 0) {
+            throw new IllegalArgumentException("Board must have sizes greater than 0");
+        }
+
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         boardSize = sizeX * sizeY;
@@ -37,6 +42,10 @@ public class BusinessBoard {
     }
 
     public Solution findSolution() {
+        if (!hasSolution()) {
+            return null;
+        }
+
         this.setup();
 
         if (displayProgress) {
@@ -48,10 +57,6 @@ public class BusinessBoard {
 
             if (performedMoveIndex == -1) {
                 this.backtrack();
-                if (currentMoveOrder < 0) {
-                    return new Solution(timesBacktracked);
-                }
-                timesBacktracked++;
             } else {
                 this.advanceKnight(performedMoveIndex);
             }
@@ -125,14 +130,19 @@ public class BusinessBoard {
     private void backtrack() {
         board.resetPosition(knightPosition);
         currentMoveOrder--;
-        if (currentMoveOrder >= 0) {
-            knightPosition = tour[currentMoveOrder];
-        }
+        knightPosition = tour[currentMoveOrder];
+        timesBacktracked++;
     }
 
     private void finalizeExecution() {
         if (lastTimer != null) {
             lastTimer.cancel();
         }
+    }
+
+
+
+    private boolean hasSolution() {
+        return BusinessHelper.hasSolution(sizeX, sizeY);
     }
 }

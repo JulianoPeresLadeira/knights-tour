@@ -5,7 +5,7 @@ import com.knightstour.chess.Position;
 
 public class Main {
     public static void main(String[] args) {
-        var board = new BusinessBoard(9,9, new Position(0,0));
+        var board = new BusinessBoard(8,8, new Position(0,0));
         board.displayProgress();
         var solution = board.findSolution();
 

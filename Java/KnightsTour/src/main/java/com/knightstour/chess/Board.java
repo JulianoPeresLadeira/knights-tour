@@ -13,11 +13,6 @@ public class Board {
     private final int[][] board;
 
     public Board(int sizeX, int sizeY) {
-
-        if (sizeX <= 0 || sizeY <= 0) {
-            throw new IllegalArgumentException("Board must have sizes greater than 0");
-        }
-
         this.sizeX = sizeX;
         this.sizeY = sizeY;
 
