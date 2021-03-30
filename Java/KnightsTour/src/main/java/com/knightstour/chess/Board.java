@@ -33,7 +33,7 @@ public class Board {
         return this.board[p.getX()][p.getY()];
     }
 
-    public void setPositionIndex(Position p, int value) {
+    public void setPositionValue(Position p, int value) {
         this.board[p.getX()][p.getY()] = value;
     }
 
@@ -47,5 +47,18 @@ public class Board {
             p.getY() >= 0 &&
             p.getY() < sizeY &&
             this.getPositionIndex(p) == -1;
+    }
+
+    public String toString() {
+        var sb = new StringBuilder();
+
+        for (int x = sizeX - 1; x >= 0; x--) {
+            for (int y = 0; y < sizeY; y++) {
+                sb.append(String.format("%2d ", board[x][y]));
+            }
+            sb.append('\n');
+        }
+
+        return sb.toString();
     }
 }

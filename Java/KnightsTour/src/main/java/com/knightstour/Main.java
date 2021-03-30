@@ -5,7 +5,15 @@ import com.knightstour.chess.Position;
 
 public class Main {
     public static void main(String[] args) {
-        BusinessBoard board = new BusinessBoard(8,8, new Position(0,0));
-        board.findSolution();
+        var board = new BusinessBoard(9,9, new Position(0,0));
+        board.displayProgress();
+        var solution = board.findSolution();
+
+        if (solution.getTour() == null) {
+            System.out.println(String.format("Board has no solution. Backtrack count: %d\n", solution.getTimesBacktracked()));
+        } else {
+            System.out.println(String.format("Solution found!. Backtrack count: %d\n", solution.getTimesBacktracked()));
+            System.out.println(solution);
+        }
     }
 }

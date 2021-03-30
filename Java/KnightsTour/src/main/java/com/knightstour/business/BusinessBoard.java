@@ -1,69 +1,88 @@
 package com.knightstour.business;
+
 import com.knightstour.chess.Board;
 import com.knightstour.chess.Moves;
 import com.knightstour.chess.Position;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class BusinessBoard {
     private int sizeX;
     private int sizeY;
-    private Position knightPosition;
     private int boardSize;
-    private Board board;
+
     private Position[] tour;
-    private int backtrackCount;
+    private Position knightPosition;
+    private Board board;
+
+    private long timesBacktracked;
+    private int currentMoveOrder;
+
+    private boolean displayProgress = false;
+    private int timerInterval = 5000;
+    private Timer lastTimer = null;
+
+    @Getter @Setter
+    private Position initialPosition;
 
     public BusinessBoard(int sizeX, int sizeY, Position initialPosition) {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
-
         boardSize = sizeX * sizeY;
-        knightPosition = initialPosition;
-        backtrackCount = 0;
-        board = new Board(sizeX, sizeY);
-        tour = new Position[boardSize];
+        setInitialPosition(initialPosition);
     }
 
-    public List<Position> findSolution() {
-        int currentMoveOrder = 0;
+    public Solution findSolution() {
+        this.setup();
+
+        if (displayProgress) {
+            printProgress();
+        }
 
         while (!boardIsSolved(currentMoveOrder)) {
-            int validMove = -1;
-            Position nextPosition = new Position(-1, -1);
-            for (int moveIndex = (board.getPositionIndex(knightPosition) + 1); moveIndex < Moves.getMoveCount(); moveIndex++) {
-                var move = Moves.getMove(moveIndex);
-                var newPosition = this.move(knightPosition, move);
+            int performedMoveIndex = this.findNextValidMove();
 
-                if (board.isValidMove(newPosition)) {
-                    validMove = moveIndex;
-                    nextPosition = newPosition;
-                    break;
-                }
-            }
-
-            if (validMove == -1) {
-                backtrackCount++;
-                board.resetPosition(knightPosition);
-                currentMoveOrder--;
+            if (performedMoveIndex == -1) {
+                this.backtrack();
                 if (currentMoveOrder < 0) {
-                    System.out.println("Board cannot be solved");
-                    return null;
+                    return new Solution(timesBacktracked);
                 }
-                knightPosition = tour[currentMoveOrder];
+                timesBacktracked++;
             } else {
-                board.setPositionIndex(knightPosition, validMove);
-                tour[currentMoveOrder] = knightPosition;
-                currentMoveOrder++;
-                knightPosition = nextPosition;
+                this.advanceKnight(performedMoveIndex);
             }
         }
 
         tour[currentMoveOrder] = knightPosition;
-        System.out.println("Solved!");
-        System.out.println(String.format("Backtrack count: %d\n", backtrackCount));
-        return Arrays.asList(tour);
+        finalizeExecution();
+        return new Solution(timesBacktracked, Arrays.asList(tour), board);
+    }
+
+    public void displayProgress() {
+        this.displayProgress = true;
+    }
+
+    private void printProgress() {
+        this.lastTimer = new Timer();
+        lastTimer.schedule(new TimerTask() {
+            @Override()
+            public void run() {
+                System.out.println(String.format("Calculating tour. Times backtracked: %d", timesBacktracked));
+                printProgress();
+            }
+        }, timerInterval);
+    }
+
+    private void setup() {
+        currentMoveOrder = 0;
+        timesBacktracked = 0;
+        knightPosition = initialPosition;
+        tour = new Position[boardSize];
+        board = new Board(sizeX, sizeY);
     }
 
     private Position move(Position initial, Position move) {
@@ -74,7 +93,46 @@ public class BusinessBoard {
         return currentMoveOrder == boardSize - 1;
     }
 
-    private int calculateNewPosition(Position dp) {
-        return dp.getX() + sizeX * dp.getY();
+    private int findNextValidMove() {
+        int moveIndex = (board.getPositionIndex(knightPosition) + 1);
+
+        while (moveIndex < Moves.getMoveCount()) {
+            var move = Moves.getMove(moveIndex);
+            var newPosition = this.move(knightPosition, move);
+
+            if (board.isValidMove(newPosition)) {
+                return moveIndex;
+            }
+
+            moveIndex++;
+        }
+
+        return -1;
+    }
+
+    private void advanceKnight(int moveIndex) {
+        board.setPositionValue(knightPosition, moveIndex);
+        tour[currentMoveOrder] = knightPosition;
+        currentMoveOrder++;
+        var nextMove = Moves.getMove(moveIndex);
+        knightPosition = getNextKnightPosition(nextMove);
+    }
+
+    private Position getNextKnightPosition(Position move) {
+        return new Position(move.getX() + knightPosition.getX(), move.getY() + knightPosition.getY());
+    }
+
+    private void backtrack() {
+        board.resetPosition(knightPosition);
+        currentMoveOrder--;
+        if (currentMoveOrder >= 0) {
+            knightPosition = tour[currentMoveOrder];
+        }
+    }
+
+    private void finalizeExecution() {
+        if (lastTimer != null) {
+            lastTimer.cancel();
+        }
     }
 }
